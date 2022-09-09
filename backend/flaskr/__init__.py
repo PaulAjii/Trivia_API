@@ -174,28 +174,34 @@ def create_app(test_config=None):
 
       previous_questions = body.get("previous_questions", None)
       quiz_category = body.get("quiz_category", None)
-      category_id = quiz_category['id']
+      cat_id = quiz_category['id']
       try:
-          if (category_id == 0):
+          if (cat_id == 0):
               questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
 
           else:
-              questions = Question.query.filter(Question.id.notin_(previous_questions), Question.category == category_id).all()
-
-          question = None
+              questions = Question.query.filter(Question.id.notin_(previous_questions)).filter(Question.category == cat_id).all()
 
           if (questions):
-              question = random.choice(questions)
+              question = random.choice(questions).format()
 
           return jsonify({
               "success": True,
-              "question": question.format()
+              "question": question
               })
 
       except:
           abort(422)
 
   #error handling
+  @app.errorhandler(400)
+  def bad_request(error):
+      return jsonify({
+          "success": False,
+          "error": 400,
+          "message": "Bad Request"
+          }), 400
+
   @app.errorhandler(500)
   def server_error(error):
       return jsonify({
