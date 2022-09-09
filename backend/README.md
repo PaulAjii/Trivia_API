@@ -30,82 +30,237 @@ psql trivia < trivia.psql
 
 ### Running the server
 
-From within the `./src` directory first ensure you are working using your created virtual environment.
+From within the backend folder;
 
 To run the server, execute:
 
 ```bash
-flask run --reload
+export FLASK_APP=flaskr
+export FLASK_DEBUG=True
+flask run
 ```
 
-The `--reload` flag will detect file changes and restart the server automatically.
+### Endpoints
 
-## ToDo Tasks
-These are the files you'd want to edit in the backend:
-
-1. *./backend/flaskr/`__init__.py`*
-2. *./backend/test_flaskr.py*
-
-
-One note before you delve into your tasks: for each endpoint, you are expected to define the endpoint and response data. The frontend will be a plentiful resource because it is set up to expect certain endpoints and response data formats already. You should feel free to specify endpoints in your own way; if you do so, make sure to update the frontend or you will get some unexpected behavior. 
-
-1. Use Flask-CORS to enable cross-domain requests and set response headers. 
-
-
-2. Create an endpoint to handle GET requests for questions, including pagination (every 10 questions). This endpoint should return a list of questions, number of total questions, current category, categories. 
-
-
-3. Create an endpoint to handle GET requests for all available categories. 
-
-
-4. Create an endpoint to DELETE question using a question ID. 
-
-
-5. Create an endpoint to POST a new question, which will require the question and answer text, category, and difficulty score. 
-
-
-6. Create a POST endpoint to get questions based on category. 
-
-
-7. Create a POST endpoint to get questions based on a search term. It should return any questions for whom the search term is a substring of the question. 
-
-
-8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
-
-
-9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
-
-
-
-## Review Comment to the Students
+#### Base URL
+```bash
+http://localhost:5000
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
 
-Endpoints
-GET '/api/v1.0/categories'
-GET ...
-POST ...
-DELETE ...
-
-GET '/api/v1.0/categories'
+##### GET  '/categories' 
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs and a success message. 
 
+*curl request:*
+```bash
+curl http://localhost:5000/categories
+```
+**Expected Response:**
+```bash 
+{
+ "categories": {
+   "1": "Science",
+   "2": "Art",
+   "3": "Geography",
+   "4": "History",
+   "5": "Entertainment",
+   "6": "Sports"
+},
+ "success": true
+}
+```
+##### GET  '/questions'
+- Fetches a dictionary of questions.
+- Also fetches a dictionary of categories as formatted in `/category`.
+- Request Arguments: page
+- Returns: An object consisting of two keys which in turn are objects.
+
+*curl request:* 
+```bash
+http://localhost:5000/questions
+```
+**Expected Response:**
+```bash 
+{
+ "categories": {
+   "1": "Science",
+   "2": "Art",
+   "3": "Geography",
+   "4": "History",
+   "5": "Entertainment",
+   "6": "Sports"
+ }, 
+ "questions": [
+  {
+   "answer": "Apollo 13",
+   "category": 5,
+   "difficulty": 4,
+   "id": 2,
+   "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+  }, ...
+ ],
+ "success": true,
+ "total_categories": 6,
+ "total_questions": 24
+}
 ```
 
+*Adding arguments for pagination*
+
+##### GET '/questions?page=1'
+
+**There are only 3 pages present**
+
+##### DELETE '/questions/<int:id>'
+- Deletes a question by id.
+- Request Arguments: None.
+
+*curl request:*
+```bash
+curl -X DELETE http://localhost:5000/questions/3
+```
+**Expected Response:**
+```bash 
+{
+ "deleted": 3,
+ "questions": [
+  {
+   "answer": "Apollo 13",
+   "category": 5,
+   "difficulty": 4,
+   "id": 2,
+   "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+  }, ...
+ ],
+ "success": true,
+ "total_questions": 23
+}
+```
+
+##### POST  '/questions'
+- Creates a new question object.
+- Takes question, answer, category(between 1 - 6), and takes difficulty(between 1 - 5)
+- Request Arguments: None.
+
+*curl request:*
+```bash
+curl -X POST http://localhost:5000/questions -H 'Content-Type: application/json' -d '{"question": "What language is this?", "answer": "Python", "category": 1, "difficulty": 1}'
+```
+
+**Expected Response:**
+```bash 
+{
+ "created_id": 30,
+ "questions": [
+  {
+   "answer": "Apollo 13",
+   "category": 5,
+   "difficulty": 4,
+   "id": 2,
+   "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+  }, ...
+ ],
+ "success": true,
+ "total_questions": 24
+}
+```
+
+##### POST  '/questions/search'
+- Searches for a question if the `searchTerm` matches any question.
+- Request Arguments: None.
+- Returns: An object of questions in which there is a match with the `searchTerm`
+
+*curl request:*
+```bash
+curl -X POST http://localhost:5000/questions/search -H 'Content-Type: application/json' -d '{"searchTerm": "What"}'
+```
+
+**Expected Response:**
+```bash 
+{
+ "questions": [
+  {
+   "answer": "Apollo 13",
+   "category": 5,
+   "difficulty": 4,
+   "id": 2,
+   "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+  }, ...
+ ],
+ "success": true,
+ "total_questions": 9
+}
+```
+
+##### GET  '/categories/<int:id>/questions'
+- Fetches questions that match the category of `id`.
+- Request Arguments: None.
+- Returns an object of questions that match the category of `id`.
+
+*curl request:*
+```bash
+curl http://localhost:5000/categories/1/questions
+```
+
+**Expected Response:**
+```bash 
+{
+ "current_category": "Science",
+ "questions": [
+  {
+   "answer": "The Liver",
+   "category": 1,
+   "difficulty": 4,
+   "id": 20,
+   "question": "What is the heaviest organ in the human body?"
+  }, ...
+ ],
+ "success": true,
+ "total_questions": 4
+}
+```
+
+##### POST  '/quizzes'
+- Fetches Categories first then posts an answer.
+
+*curl request:*
+```bash
+curl -X POST http://localhost:5000/quizzes -H 'Content-Type: application/json' -d '{"previous_questions": [2, 5, 1], "quiz_category": {"type": "Science", "I'd": 1}}'
+```
+
+**Expected Response:**
+```bash 
+{
+ "question": {
+   "answer": "Blood",
+   "category": 1,
+   "difficulty": 4,
+   "id": 22,
+   "question": "Hematology is the branch of medicine involving the study of what?"
+ },
+ "success": true
+}
+```
+
+## Error Response:
+```bash 
+{
+  "error": 404,
+  "message": "Not Found",
+  "success": false
+}
+```
 
 ## Testing
+
 To run the tests, run
-```
+```bash
 dropdb trivia_test
+
 createdb trivia_test
+
 psql trivia_test < trivia.psql
+
 python test_flaskr.py
 ```
